@@ -1,6 +1,7 @@
 package com.siraj.players.service;
 
 import com.siraj.players.entity.Players;
+import com.siraj.players.exception.ResourceNotFoundException;
 import jakarta.persistence.Tuple;
 
 import java.util.List;
@@ -23,15 +24,8 @@ public interface PlayerService {
      * @param player The player to be saved
      * @return The saved player
      */
-    Players savePlayerInfo(Players player);
+    Players savePlayerInfo(Players player)  ;
 
-    /**
-     * Checks if a player with the given email already exists.
-     *
-     * @param email The email to check
-     * @return true if player exists, false otherwise
-     */
-    boolean findByEmail11(String email);
 
     /**
      * Retrieves the player profile associated with the given email.
