@@ -1,6 +1,7 @@
 package com.siraj.players.service;
 
 import com.siraj.players.entity.Players;
+import com.siraj.players.exception.ResourceNotFoundException;
 import com.siraj.players.repository.PlayersRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Tuple;
@@ -37,7 +38,7 @@ public class PlayerServiceImpl implements PlayerService {
 
     @Transactional
     @Override
-    public Players savePlayerInfo(Players player) {
+    public Players savePlayerInfo(Players player)   {
         try {
             return repository.save(player);
         } catch (Exception e) {
@@ -46,11 +47,6 @@ public class PlayerServiceImpl implements PlayerService {
         }
     }
 
-    @Override
-    public boolean findByEmail11(String email) {
-        Optional<Players> playerByEmail = repository.findPlayersByEmail(email);
-        return playerByEmail.isPresent();
-    }
 
     @Override
     public Players getProfileByEmail(String email) {

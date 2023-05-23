@@ -3,6 +3,7 @@ package com.siraj.players.service;
 import com.siraj.players.entity.Players;
 import com.siraj.players.entity.PlayersData;
 import com.siraj.players.entity.Sports;
+import com.siraj.players.exception.ResourceNotFoundException;
 import com.siraj.players.repository.PlayersRepository;
 import jakarta.persistence.Tuple;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +35,7 @@ public class PlayerServiceManager {
      * @param sportsInfo The list of sports associated with the player
      * @return true if the player exists and sports are updated, false otherwise
      */
-    public boolean validatePlayerDetails(Players player, List<Sports> sportsInfo) {
+    public boolean validatePlayerDetails(Players player, List<Sports> sportsInfo)  {
         Players playerItem = playerService.getProfileByEmail(player.getEmailId());
         if (playerItem != null) {
             System.out.println("Profile already exists: " + playerItem.getPlayerId());
@@ -51,15 +52,19 @@ public class PlayerServiceManager {
      * @param playerItem The player to whom the sports are associated
      * @param sports     The list of sports to be saved
      */
-    private void saveSports(Players playerItem, List<Sports> sports) {
+    private void saveSports(Players playerItem, List<Sports> sports)   {
+
+         List<Sports> sportsUpdated = new ArrayList<>();
+
         for (Sports sport : sports) {
             sport.setPlayer(playerItem);
             Sports spAdded = sportsService.addSports(sport);
+            sportsUpdated.add(spAdded);
             System.out.println("Sports added: " + sport.getSportsId());
-            playerItem.getSports().add(spAdded);
-            playerService.savePlayerInfo(playerItem);
-            System.out.println("PlayerItem updated: " + playerItem.getSports().toString());
         }
+        playerItem.setSports(sportsUpdated);
+        playerService.savePlayerInfo(playerItem);
+        System.out.println("PlayerItem updated: " + playerItem.getSports().toString());
     }
 
     /**
@@ -68,7 +73,7 @@ public class PlayerServiceManager {
      * @param player The player to be added
      * @return The added player
      */
-    public Players addPlayerToDB(Players player) {
+    public Players addPlayerToDB(Players player)   {
         List<Sports> sportsData = new ArrayList<>();
         List<Sports> sportsInfo = player.getSports();
         Players addedPlayer = null;
@@ -84,8 +89,13 @@ public class PlayerServiceManager {
             if (!sportsInfo.isEmpty()) {
                 validateAndAddSportsInfo(sportsData, addedPlayer);
             }
+            return addedPlayer;
         }
-        return addedPlayer;
+        else{
+            Players playerItem = playerService.getProfileByEmail(player.getEmailId());
+            return playerItem;
+        }
+
     }
 
     /**

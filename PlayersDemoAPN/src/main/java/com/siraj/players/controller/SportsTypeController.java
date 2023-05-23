@@ -4,6 +4,7 @@ import com.siraj.players.entity.Players;
 import com.siraj.players.entity.PlayersData;
 import com.siraj.players.entity.Sports;
 import com.siraj.players.entity.SportsData;
+import com.siraj.players.exception.ResourceNotFoundException;
 import com.siraj.players.service.SportsService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,11 +51,11 @@ public class SportsTypeController {
      * @param sportsName The name of the sports type to add.
      */
     @PutMapping("/add/{sportsName}")
-    public void addSportsType(@PathVariable String sportsName) {
+    public void addSportsType(@PathVariable String sportsName) throws ResourceNotFoundException {
         if (sportsName != null) {
             boolean isSportsTypeExists = sportsService.findBySportsName(sportsName);
             if (isSportsTypeExists) {
-                throw new IllegalArgumentException("Sports Type already exists");
+                throw new ResourceNotFoundException("Sports Type already exists");
             } else {
                 Sports sp = new Sports();
                 sp.setSportsName(sportsName);
@@ -62,6 +63,7 @@ public class SportsTypeController {
                 sportsService.addSports(sp);
             }
         }
+        return;
     }
 
     /**
@@ -102,14 +104,15 @@ public class SportsTypeController {
      * @return A list of SportsData objects containing sports and player information.
      */
     @GetMapping("/getSportsList")
-    public List<SportsData> getSportsList(@RequestBody String sportsJson) {
+    public ResponseEntity<List<SportsData>> getSportsList(@RequestBody String sportsJson) throws ResourceNotFoundException {
         List<Sports> sportsInfo = new ArrayList<>();
         List<SportsData> result = new ArrayList<>();
         if (sportsJson != null && sportsJson.isEmpty()) {
-            SportsData data = new SportsData();
-            data.setErrorMessage("Please provide sports data");
-            result.add(data);
-            return result;
+            try {
+                throw new ResourceNotFoundException("Please provide sports data");
+            } catch (ResourceNotFoundException e) {
+                throw new RuntimeException(e);
+            }
         }
 
         // Parse the JSON string
@@ -117,21 +120,22 @@ public class SportsTypeController {
         List<Object> list = par.parseList(sportsJson);
         if (list.isEmpty()) {
 
-            if (sportsJson != null && sportsJson.isEmpty()) {
-                SportsData data = new SportsData();
-                data.setErrorMessage("Please provide sports data");
-                result.add(data);
-                return result;
-            }
+            if (sportsJson != null && sportsJson.isEmpty())
+                try {
+                    throw new ResourceNotFoundException("Please provide sports data");
+                } catch (ResourceNotFoundException e) {
+                    throw new RuntimeException(e);
+                }
         }
         for (Object li : list) {
             HashMap<String, String> map = (HashMap<String, String>) li;
             String sportsList = map.get("sportsName");
             if (sportsList != null && sportsList.isEmpty()) {
-                SportsData data = new SportsData();
-                data.setErrorMessage("Please provide sports data");
-                result.add(data);
-                return result;
+                try {
+                    throw new ResourceNotFoundException("Please provide sports data");
+                } catch (ResourceNotFoundException e) {
+                    throw new RuntimeException(e);
+                }
             }
 
             String[] strArray = sportsList.split(",");
@@ -165,7 +169,7 @@ public class SportsTypeController {
             result.add(data);
         }
 
-        return result;
+        return ResponseEntity.ok().body(result);
     }
 
     /**
@@ -175,7 +179,7 @@ public class SportsTypeController {
      * @return The updated player object.
      */
     @PutMapping("updateSports")
-    public Players updateSportsData(@RequestBody Players player) {
+    public ResponseEntity<Players> updateSportsData(@RequestBody Players player) throws ResourceNotFoundException {
         List<Sports> sp = player.getSports();
         List<Sports> updatedSports = new ArrayList<>();
         for (Sports s : sp) {
@@ -187,14 +191,14 @@ public class SportsTypeController {
                     Sports updated = sportsService.updateSportsForThePlayer(fromDB);
                     updatedSports.add(updated);
                 } catch (DataAccessException e) {
-                    throw new IllegalArgumentException("Sports Data not updated check the player details");
+                    throw new ResourceNotFoundException("Sports Data not updated check the player details");
                 }
             } else {
-                throw new IllegalArgumentException("Sports Data not updated check the player details");
+                throw new ResourceNotFoundException("Sports Data not updated check the player details");
             }
         }
         player.setSports(updatedSports);
-        return player;
+        return ResponseEntity.ok().body(player);
     }
 
     /**
@@ -203,14 +207,10 @@ public class SportsTypeController {
      * @param sportsId The ID of the sports to delete.
      */
     @DeleteMapping("/deletePlayerBySportsId")
-    public void deleteSportsInfoAndPlayer(@RequestParam Long sportsId) {
+    public void deleteSportsInfoAndPlayer(@RequestParam Long sportsId) throws Exception, ResourceNotFoundException {
         Sports fromDB;
-        try {
-            fromDB = sportsService.findSportsById(sportsId);
-            System.out.println("------------found the value by id " + fromDB.toString());
-            sportsService.deleteBySportId(sportsId);
-        } catch (EntityNotFoundException | IllegalArgumentException e) {
-            throw new EntityNotFoundException("No record found by Sports id " + sportsId);
-        }
+        fromDB = sportsService.findSportsById(sportsId);
+        System.out.println("------------found the value by id " + fromDB.toString());
+        sportsService.deleteBySportId(sportsId);
     }
 }

@@ -2,8 +2,10 @@ package com.siraj.players.controller;
 
 import com.siraj.players.entity.Players;
 import com.siraj.players.entity.PlayersData;
+import com.siraj.players.exception.ResourceNotFoundException;
 import com.siraj.players.service.PlayerServiceManager;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,11 +28,11 @@ public class PlayerController {
      * @return The added player object.
      */
     @PostMapping("/addPlayer")
-    public Players addPlayer(@RequestBody Players player) {
+    public ResponseEntity<Players> addPlayer(@RequestBody Players player)  {
         System.out.println(player.toString());
         Players playerAdded = serviceManager.addPlayerToDB(player);
-        System.out.println("Player added: " + playerAdded.toString());
-        return playerAdded;
+        //System.out.println("Player added: " + playerAdded.toString());
+        return  ResponseEntity.ok().body(playerAdded);
     }
 
     /**
@@ -39,8 +41,8 @@ public class PlayerController {
      * @return A list of players.
      */
     @GetMapping
-    public List<Players> getPlayers() {
-        return serviceManager.getPlayers();
+    public ResponseEntity<List<Players>> getPlayers() {
+        return ResponseEntity.ok().body(serviceManager.getPlayers());
     }
 
     /**
@@ -52,12 +54,12 @@ public class PlayerController {
      * @return A list of players matching the specified criteria.
      */
     @GetMapping("/getPlayersByAge")
-    public List<Players> getPlayersByAge(
+    public ResponseEntity<List<Players>> getPlayersByAge(
             @RequestParam Integer age,
             @RequestParam(required = false) String gender,
             @RequestParam(required = false) Integer playerLevel
     ) {
-        return serviceManager.getPlayersByAgeAndGenderAndPlayerLevel(age, gender, playerLevel);
+        return ResponseEntity.ok().body(serviceManager.getPlayersByAgeAndGenderAndPlayerLevel(age, gender, playerLevel));
     }
 
     /**
@@ -66,8 +68,8 @@ public class PlayerController {
      * @return A list of player data.
      */
     @GetMapping("/getListByMorethanOneSports")
-    public List<PlayersData> getPlayersByMoreThanOneSports() {
-        return serviceManager.getPlayersMoreThanOneSports();
+    public ResponseEntity<List<PlayersData>> getPlayersByMoreThanOneSports() {
+        return ResponseEntity.ok().body(serviceManager.getPlayersMoreThanOneSports());
     }
 
     /**
@@ -76,7 +78,7 @@ public class PlayerController {
      * @return A list of players.
      */
     @GetMapping("/getPlayersWhoIsNotInSports")
-    public List<Players> getPlayersWhoIsNotInSports() {
-        return serviceManager.getPlayersWhoIsNotInSports();
+    public ResponseEntity<List<Players>> getPlayersWhoIsNotInSports() {
+        return ResponseEntity.ok().body(serviceManager.getPlayersWhoIsNotInSports());
     }
 }
